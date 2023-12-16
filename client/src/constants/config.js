@@ -100,6 +100,15 @@ export const SERVICE_URLS = {
     url: "user/file/upload",
     method: "POST",
   },
+  getMessage: {
+    url: "user/get/message/:sender/receiver",
+    method: "GET",
+    params: true
+  },
+  sendMessage: {
+    url: "user/send/message",
+    method: "POST",
+  }
 
 
 

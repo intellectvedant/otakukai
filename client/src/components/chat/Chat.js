@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   TextField,
   Button,
@@ -11,6 +11,12 @@ import {
 import { styled } from "@mui/system";
 import io from "socket.io-client";
 import { useParams } from "react-router-dom";
+import { API } from "../../service/api";
+import { DataContext } from "../../context/DataProvider";
+import axios from "axios";
+import { getAccessToken } from "../../utils/comman-utlis";
+
+const API_URL = "http://localhost:8000";
 
 const ChatContainer = styled("div")({
   display: "flex",
@@ -48,12 +54,73 @@ const ChatMessage = styled(ListItem)({
   marginBottom: "10px",
 });
 
-
 const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [socket, setSocket] = useState(null);
+  const [isDataFetched, setIsDataFetched] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const { username } = useParams();
+  const { account } = useContext(DataContext);
+
+  const sender = account?._id;
+  const receiver = username;
+
+  useEffect(() => {
+    const getMessage = async () => {
+      if (receiver !== undefined) {
+        const response = await axios.get(
+          `${API_URL}/user/get/message/${sender}/${receiver}`,
+          {
+            headers: {
+              authorization: getAccessToken(),
+            },
+          }
+        );
+
+        if (response.data) {
+          console.log({ message: response.data });
+          setMessages(response.data);
+          setIsDataFetched(true);
+        }
+      }
+    };
+    getMessage();
+  }, [sender, receiver]);
+
+  const handleSendMessage = async () => {
+    const response = await API.sendMessage({
+      sender,
+      receiver,
+      message: newMessage,
+    });
+
+    if (newMessage.trim() === "") {
+      return;
+    }
+
+    // Update the local messages state
+    setMessages([
+      ...messages,
+      {
+        sender: account?.username, // assuming you have a username in your account
+        receiver: username,
+        message: newMessage,
+      },
+    ]);
+
+    // Clear the message input
+    setNewMessage("");
+
+    // Send the message to the other user
+    const message = {
+      text: newMessage,
+      sender: account?.username,
+      receiver: username,
+    };
+    socket.emit("message", message);
+    socket.emit("login", sender);
+  };
 
   useEffect(() => {
     // Connect to the Socket.IO server
@@ -62,11 +129,18 @@ const Chat = () => {
     // Listen for the 'connect' event
     newSocket.on("connect", () => {
       console.log("Connected to the server");
+      newSocket.emit("login", sender);
     });
 
     // Listen for incoming messages
     newSocket.on("message", (message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
+    });
+
+    // online users details
+    newSocket.on("onlineUsers", (onlineUsers) => {
+      console.log("onlineUsers:", onlineUsers);
+      setOnlineUsers(onlineUsers);
     });
 
     // Set the socket state
@@ -76,38 +150,32 @@ const Chat = () => {
     return () => {
       newSocket.disconnect();
     };
-  }, []);
+  }, [sender]);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() !== "" && socket) {
-      // Send the message to the other user
-      const message = { text: newMessage, sender: username };
-      socket.emit("message", message);
-
-      // Update the local messages state
-      if(message.sender !== username){
-        setMessages([...messages, message]);
-      }
-      setNewMessage("");
-
-    }
-  };
+  const isUserOnline = onlineUsers.includes(receiver);
+  console.log(onlineUsers);
+  console.log(isUserOnline);
 
   return (
     <ChatContainer>
       <ChatPaper elevation={3}>
         <ChatHeader>
-          <div>Chat with {username}</div>
+          <div>
+            Chat with {username}
+            {isUserOnline ? "(Online)" : "(Offline)"}
+          </div>
         </ChatHeader>
         <List>
-          {messages.map((message, index) => (
-            <ChatMessage key={index} alignItems="flex-start">
-              <ListItemText
-                primary={message.text}
-                secondary={message.sender === username ? "You" : username}
-              />
-            </ChatMessage>
-          ))}
+          {isDataFetched && messages?.length !== 0
+            ? messages?.map((message) => (
+                <ChatMessage key={message?._id} alignItems="flex-start">
+                  <ListItemText
+                    primary={message?.message}
+                    secondary={message?.sender}
+                  />
+                </ChatMessage>
+              ))
+            : "Wow! this Empty."}
         </List>
       </ChatPaper>
       <ChatFooter>
@@ -120,11 +188,7 @@ const Chat = () => {
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
         />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSendMessage}
-        >
+        <Button variant="contained" color="primary" onClick={handleSendMessage}>
           Send
         </Button>
       </ChatFooter>

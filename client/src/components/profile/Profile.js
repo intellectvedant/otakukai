@@ -62,15 +62,11 @@ const Profile = () => {
   const { username } = useParams();
   const [data, setData] = useState("");
   const [isMounted, setIsMounted] = useState(true);
- 
-
-  console.log(username);
 
   useEffect(() => {
     const fetchData = async () => {
       let response = await API.getProfile(username);
       if (isMounted && response.isSuccess) {
-        console.log(response.data);
         setData(response.data);
       }
     };
@@ -94,8 +90,8 @@ const Profile = () => {
         >
           <Image src={data.picture} alt="user" />
           <Styledbox>
-            <Link to={`/chat/${data.username}`}>
-            <Button>Chat</Button>
+            <Link to={`/chat/${data._id}`}>
+              <Button>Chat</Button>
             </Link>
           </Styledbox>
         </SubProfilebox>

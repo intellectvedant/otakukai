@@ -26,13 +26,30 @@ import {
   updatecomment,
   deletecomment,
 } from "../controller/comment-controller.js";
-import {body, validationResult} from 'express-validator'
+import { body, validationResult } from "express-validator";
+import { getMessage, sendMessage } from "../controller/message_controller.js";
 
 const router = express.Router();
 
 // Define your routes
-router.post("/signup",[body("name","Enter a valid value").isLength({min: 3}), body("username", "Enter valid value").isLength({min: 3}), body("eienyo", "Enter valid Eienyo").isLength({min: 10}), body("password","Enter a valid password").isLength({min: 7}),], signupuser);
-router.post("/login",[body("username","Enter a valid username").isLength({min: 3}), body("passowrd", "Passowrd cannot be empty").exists(),], loginuser);
+router.post(
+  "/signup",
+  [
+    body("name", "Enter a valid value").isLength({ min: 3 }),
+    body("username", "Enter valid value").isLength({ min: 3 }),
+    body("eienyo", "Enter valid Eienyo").isLength({ min: 10 }),
+    body("password", "Enter a valid password").isLength({ min: 7 }),
+  ],
+  signupuser
+);
+router.post(
+  "/login",
+  [
+    body("username", "Enter a valid username").isLength({ min: 3 }),
+    body("passowrd", "Passowrd cannot be empty").exists(),
+  ],
+  loginuser
+);
 router.post("/file/upload", upload.single("file"), uploadimage);
 router.get("/file/:filename", getimage);
 router.post("/create", authenticateToken, createpost);
@@ -48,5 +65,7 @@ router.put("/updateeienyo/:id", authenticateToken, updateeienyo);
 router.put("/updatename/:id", authenticateToken, updatename);
 router.get("/profile/:username", authenticateToken, getprofile);
 router.post("/user/file/upload", upload.single("file"), uploaduserimage);
+router.post("/user/send/message", authenticateToken, sendMessage);
+router.get("/user/get/message/:sender/:receiver", authenticateToken, getMessage)
 
 export default router;
