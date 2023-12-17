@@ -1,8 +1,10 @@
-import React, {useContext} from "react";
+import React, { useContext } from "react";
 import { AppBar, Toolbar, Box, styled, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 import HomeIcon from "@mui/icons-material/Home";
 import { DataContext } from "../../context/DataProvider";
+import AddIcon from "@mui/icons-material/Add";
+import ChatIcon from "@mui/icons-material/Chat";
 
 const Component = styled(AppBar)`
   background-color: #64acac;
@@ -22,9 +24,10 @@ const Container = styled(Toolbar)`
 `;
 
 const Image = styled("img")({
-  width: "50px",
-  height: "50px",
-  borderRadius: "52px",
+  width: "45px",
+  height: "45px",
+  borderRadius: "50%",
+  border: "2px solid #000",
 });
 
 const Maintext = styled(Typography)`
@@ -34,19 +37,30 @@ const Maintext = styled(Typography)`
 `;
 
 const Header = () => {
-  const {account} = useContext(DataContext)
+  const { account } = useContext(DataContext);
   return (
     <Component>
       <Container>
         <Box>
           <Link to="/">
-            <HomeIcon />
+            <HomeIcon sx={{ fontSize: "30px" }} />
           </Link>
         </Box>
         <Box>
           <Maintext>otakukai</Maintext>
         </Box>
-        <Box>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "5px",
+          }}
+        >
+          <AddIcon sx={{ fontSize: "30px" }} />
+          <Link sx={{textDecration: "none"}} to={`/chatbar`}>
+            <ChatIcon  sx={{ fontSize: "30px" }} />
+          </Link>
           <Link to="/settings">
             <Image src={account.picture} alt="user" />
           </Link>

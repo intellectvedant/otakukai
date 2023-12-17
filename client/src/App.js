@@ -21,6 +21,7 @@ import UpdatePost from "./components/create/UpdatePost";
 import Settings from "./components/setting/Settings";
 import Profile from "./components/profile/Profile";
 import Chat from "./components/chat/Chat.js";
+import Chatbar from "./components/chat/Chatbar.js";
 
 
 const PrivateRoute = ({ authentication, ...props }) => {
@@ -88,6 +89,12 @@ function App() {
                 element={<PrivateRoute authentication={authentication} />}
               >
                 <Route path="/chat/:username" element={<Chat />} />
+              </Route>
+              <Route
+                path="/chatbar"
+                element={<PrivateRoute authentication={authentication} />}
+              >
+                <Route path="/chatbar" element={<Chatbar />} />
               </Route>
             </Routes>
           </div>

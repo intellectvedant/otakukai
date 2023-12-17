@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import {
+  Box,
   TextField,
   Button,
   List,
@@ -18,23 +19,42 @@ import { getAccessToken } from "../../utils/comman-utlis";
 
 const API_URL = "http://localhost:8000";
 
+const Container = styled(Box)(({ theme }) => ({
+  border: "1px solid #000",
+  display: "grid",
+  gridTemplateRows: "(1fr 3fr 1fr)",
+  borderRadius: "12px",
+  margin: "85px",
+  maxHeight: "auto",
+  [theme.breakpoints.down("md")]: {
+    margin: "85px 3px",
+    maxHeight: "800px",
+  },
+}));
+
 const ChatContainer = styled("div")({
   display: "flex",
   flexDirection: "column",
-  alignItems: "center",
-  margin: "85px",
+  justifyContent: "center",
+  maxHeight: "auto",
+  width: "100%",
   marginTop: (theme) => theme.spacing(4),
-  height: "60vh",
 });
 
 const ChatPaper = styled(Paper)({
-  width: "90%",
+  width: "100%",
+  padding: "2px 0px",
   padding: (theme) => theme.spacing(2),
-  height: "80%",
+  height: "240px",
   overflowY: "auto",
+  backgroundColor: "#e5F5F5"
 });
 
 const ChatHeader = styled("div")({
+  padding: "0px 8px",
+  fontSize: "14px",
+  margin: "6px",
+  fontWeight: "bolder",
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
@@ -42,13 +62,16 @@ const ChatHeader = styled("div")({
 });
 
 const ChatFooter = styled("div")({
+  padding: "1px 5px",
   display: "flex",
   alignItems: "center",
-  marginTop: "10px",
+  marginTop: "2px",
+  gap: "5px",
 });
 
 const ChatMessage = styled(ListItem)({
   display: "flex",
+  borderRadius: "12px",
   flexDirection: "row",
   alignItems: "flex-start",
   marginBottom: "10px",
@@ -59,6 +82,7 @@ const Chat = () => {
   const [newMessage, setNewMessage] = useState("");
   const [socket, setSocket] = useState(null);
   const [isDataFetched, setIsDataFetched] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const { username } = useParams();
   const { account } = useContext(DataContext);
@@ -157,27 +181,38 @@ const Chat = () => {
   console.log(isUserOnline);
 
   return (
-    <ChatContainer>
-      <ChatPaper elevation={3}>
-        <ChatHeader>
-          <div>
-            Chat with {username}
-            {isUserOnline ? "(Online)" : "(Offline)"}
-          </div>
-        </ChatHeader>
-        <List>
-          {isDataFetched && messages?.length !== 0
-            ? messages?.map((message) => (
-                <ChatMessage key={message?._id} alignItems="flex-start">
-                  <ListItemText
-                    primary={message?.message}
-                    secondary={message?.sender}
-                  />
-                </ChatMessage>
-              ))
-            : "Wow! this Empty."}
-        </List>
-      </ChatPaper>
+    <Container>
+      <ChatHeader>
+        <Box>
+          {messages?.length !== 0 && messages[0]?.receiver?._id === username
+            ? `${messages[0]?.receiver?.username}`
+            : `${messages[0]?.sender?.username}`}
+        </Box>
+        <Box
+          sx={{
+            height: "10px",
+            width: "10px",
+            borderRadius: "50%",
+            backgroundColor: isUserOnline ? "green" : "red",
+          }}
+        />
+      </ChatHeader>
+      <ChatContainer>
+        <ChatPaper elevation={3}>
+          <List>
+            {isDataFetched && messages?.length !== 0
+              ? messages?.map((message) => (
+                  <ChatMessage key={message?._id} alignItems="flex-start">
+                    <ListItemText
+                      primary={message?.message}
+                      secondary={message?.sender.username}
+                    />
+                  </ChatMessage>
+                ))
+              : "Wow! this Empty."}
+          </List>
+        </ChatPaper>
+      </ChatContainer>
       <ChatFooter>
         <TextField
           variant="outlined"
@@ -188,11 +223,11 @@ const Chat = () => {
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
         />
-        <Button variant="contained" color="primary" onClick={handleSendMessage}>
+        <Button variant="contained" sx={{borderRadius: "12px", bgcolor: "#64acac" }} onClick={handleSendMessage}>
           Send
         </Button>
       </ChatFooter>
-    </ChatContainer>
+    </Container>
   );
 };
 

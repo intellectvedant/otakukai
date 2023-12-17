@@ -1,42 +1,41 @@
 import Message from "../model/message.js";
 
-export const sendMessage = async(req,res)=>{
-    try {
+export const sendMessage = async (req, res) => {
+  try {
+    console.log({ message: req.body });
 
-        console.log({ message: req.body });
+    const messageData = req.body;
 
-        const messageData = req.body;
-    
-        const message = new Message(messageData);
-    
-        await message.save();
-    
-        return res.status(200).json({ msg: "Message Saved" });
-        
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({msg: "Internal Server Error"})
-    }
-}
+    const message = new Message(messageData);
 
-export const getMessage = async(req,res)=>{
-    try {
+    await message.save();
 
-        const { sender, receiver} = req.params;
+    return res.status(200).json({ msg: "Message Saved" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
 
-        const message = await Message.find({
-            $or:[
-                {sender, receiver},
-                {sender: receiver, receiver: sender}
-            ],
-        }).sort({ timestamp: 1 });
+export const getMessage = async (req, res) => {
+  try {
+    const { sender, receiver } = req.params;
 
-        console.log({messageget : message})
+    const message = await Message.find({
+      $or: [
+        { sender, receiver },
+        { sender: receiver, receiver: sender },
+      ],
+    })
+      .sort({ timestamp: 1 })
+      .populate("sender", "username")
+      .populate("receiver", "username");
 
-        res.status(200).json(message);
-        
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({msg: "Internal Server Error"})
-    }
-}
+    console.log({ messageget: message });
+
+    res.status(200).json(message);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
